@@ -1,0 +1,102 @@
+Contracts For Python
+--------------------
+
+This library is a very simple and straightforward way of implementing contracts
+in python using decorators. I did have a look at a few other contract libraries 
+and found that they were either not very pythonic or decided to use strings to 
+encode the contract logic which makes it horrible to debug or even write your 
+contracts cleanly.
+
+In the hopes of creating something better I've created this library to see if
+others find it useful. 
+
+Installation
+------------
+
+> sudo python setup.py install
+
+Will install the contracts library which you can then import with the usual 
+'import contracts' and start using the contracts library immediately.
+
+Usage
+-----
+
+Function Decorators
+-------------------
+
+@post
+-----
+
+The post decorator will validate whatever you want to validate after the 
+execution of the decorated function and the contract library will pass the 
+return value of the decorated function as your first argument. You can then 
+choose to do any required validation to the result of that function or check 
+any other global variable state of importance.
+
+Example: return constraint check
+--------------------------------
+        
+@post(lambda x: x > 0,"return is not a positive number")
+def bad_abs(a):
+    return a
+    
+The previous function is a bad implementation of the abs function and with the 
+post contract that checks the return to be positive we can easily catch that 
+when we call the function with -2 as an argument this is what we'd see:
+        
+>>> bad_abs(-2) Traceback (most recent call last): File "<stdin>", line 1, in <module>
+  File "contracts.py", line 35, in new_f
+    assert function(result), message
+AssertionError: return is not a positive number
+
+@pre
+----
+
+The pre decorator will validate whatever you want to validate befor the 
+execution of the decorated function and the contract library will pass the 
+exact arguments that are about to be passed to the decorated function before 
+executing that.
+
+Example: argument validation
+
+@pre(lambda _,y: len(y) > 0)
+def find_element(elem,list):
+    ...
+    
+The above example shows you can guarantee your function is never called with a
+list that has zero elements.
+
+Class Decorators
+----------------
+
+@inv
+----
+
+The invariant decorator will validate that the contract you want is always 
+validated for every interaction with any instance of the class you just decorated.
+Basically the framework is able to hijack all of the methods, constructors, etc 
+in a way that makes sure that every change to the object is validated before and
+after the change to not be in violation of the contract specified.
+
+@inv(lambda obj: obj.visitors >= 0)
+class VistorTracker(object):
+    
+    # if not set the pre condition will fail at initialization phase because
+    # the attribute visitors doesn't exist at that time if removed from this 
+    # line 
+    visitors = 0
+     
+    def __init__(self):
+        self.visitors = 0
+        
+    def leave(self):
+        self.visitors=self.visitors-1
+
+    def visit(self): 
+        self.visitors=self.visitors+1
+        
+        
+Now basically the class VisitorTracker is constantly being checked whenever any
+method is called on the class or variable is modified the invariant contract 
+checks that the number of visitors is superior to 0 and that there haven't
+been more leave() method calls executed then visit() methods called.
