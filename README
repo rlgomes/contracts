@@ -18,6 +18,10 @@ Installation
 Will install the contracts library which you can then import with the usual 
 'import contracts' and start using the contracts library immediately.
 
+or install directly from github with:
+
+pip install -e git+git://github.com/rlgomes/contracts.git#egg=contracts
+
 Usage
 -----
 
